@@ -1,16 +1,39 @@
 install.packages("dplyr")
 install.packages("ggplot2")
 install.packages("ggpubr")
-install.packages("doParallel")
-install.packages("iterators")
+install.packages("parallel")
 library(dplyr)
 library(ggplot2)
 library(ggpubr)
-library(foreach)
 library(doParallel)
-library(iterators)
+library(parallel)
+library(foreach)
 
-#insert csv file into variable
+#parallel processing
+# Detect the number of available cores and create cluster
+cl <- parallel::makeCluster(detectCores())
+
+# Activate cluster for foreach library
+doParallel::registerDoParallel(cl)
+time_foreach <- system.time({
+  r <- foreach::foreach(i = 1:1,
+                        .combine = rbind) %dopar% {
+                          oswardJan<-read.csv('Jan_osward_grocery.csv')
+                          oswardFeb<-read.csv('Feb_osward_grocery.csv')
+                          oswardMar<-read.csv('Mar_osward_grocery.csv')
+                          oswardApr<-read.csv('Apr_osward_grocery.csv')
+                          oswardMay<-read.csv('May_osward_grocery.csv')
+                          oswardJun<-read.csv('Jun_osward_grocery.csv')
+                        }
+})
+time_foreach[3]
+# Stop cluster to free up resources
+parallel::stopCluster(cl)
+
+#sequential processing
+#runtime
+start<-Sys.time()
+
 oswardJan<-read.csv('Jan_osward_grocery.csv')
 oswardFeb<-read.csv('Feb_osward_grocery.csv')
 oswardMar<-read.csv('Mar_osward_grocery.csv')
@@ -18,17 +41,10 @@ oswardApr<-read.csv('Apr_osward_grocery.csv')
 oswardMay<-read.csv('May_osward_grocery.csv')
 oswardJun<-read.csv('Jun_osward_grocery.csv')
 
-#check table
-View(oswardJan)
+end<-Sys.time()
 
-#parallel processing
-numCores<-detectCores() #get the numbers of cores available
-
-registerDoParallel(numCores)  # use multicore, set to the number of our cores
-foreach (i=1:3) %dopar% {
-  sqrt(i)
-}
-
+runtime<-end - start
+runtime
 
 #descriptive analysis 
 #Jan (age 0 to 17)
