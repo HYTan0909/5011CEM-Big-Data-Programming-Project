@@ -1,9 +1,14 @@
 install.packages("dplyr")
 install.packages("ggplot2")
 install.packages("ggpubr")
+install.packages("doParallel")
+install.packages("iterators")
 library(dplyr)
 library(ggplot2)
 library(ggpubr)
+library(foreach)
+library(doParallel)
+library(iterators)
 
 #insert csv file into variable
 oswardJan<-read.csv('Jan_osward_grocery.csv')
@@ -15,6 +20,15 @@ oswardJun<-read.csv('Jun_osward_grocery.csv')
 
 #check table
 View(oswardJan)
+
+#parallel processing
+numCores<-detectCores() #get the numbers of cores available
+
+registerDoParallel(numCores)  # use multicore, set to the number of our cores
+foreach (i=1:3) %dopar% {
+  sqrt(i)
+}
+
 
 #descriptive analysis 
 #Jan (age 0 to 17)
@@ -124,4 +138,36 @@ minJunElder<-min(oswardJun$age_65., na.rm = TRUE)
 meanJunElder<-mean(oswardJun$age_65., na.rm = TRUE)
 medianJunElder<-median(oswardJun$age_65., na.rm = TRUE)
 sdJunElder<-sd(oswardJun$age_65., na.rm = TRUE)
+
+#correlation test
+#Jan
+cor.test(oswardJan$num_transactions, oswardJan$age_0_17)
+cor.test(oswardJan$num_transactions, oswardJan$age_18_64)
+cor.test(oswardJan$num_transactions, oswardJan$age_65.)
+
+#Feb
+cor.test(oswardFeb$num_transactions, oswardFeb$age_0_17)
+cor.test(oswardFeb$num_transactions, oswardFeb$age_18_64)
+cor.test(oswardFeb$num_transactions, oswardFeb$age_65.)
+
+#Mar
+cor.test(oswardMar$num_transactions, oswardMar$age_0_17)
+cor.test(oswardMar$num_transactions, oswardMar$age_18_64)
+cor.test(oswardMar$num_transactions, oswardMar$age_65.)
+
+#Apr
+cor.test(oswardApr$num_transactions, oswardApr$age_0_17)
+cor.test(oswardApr$num_transactions, oswardApr$age_18_64)
+cor.test(oswardApr$num_transactions, oswardApr$age_65.)
+
+#May
+cor.test(oswardMay$num_transactions, oswardMay$age_0_17)
+cor.test(oswardMay$num_transactions, oswardMay$age_18_64)
+cor.test(oswardMay$num_transactions, oswardMay$age_65.)
+
+#Jun
+cor.test(oswardJun$num_transactions, oswardJun$age_0_17)
+cor.test(oswardJun$num_transactions, oswardJun$age_18_64)
+cor.test(oswardJun$num_transactions, oswardJun$age_65.)
+
 
