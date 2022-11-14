@@ -2,49 +2,53 @@ install.packages("dplyr")
 install.packages("ggplot2")
 install.packages("ggpubr")
 install.packages("parallel")
+install.packages('microbenchmark')
+install.packages("tidyverse")
+install.packages("caTools")
 library(dplyr)
 library(ggplot2)
 library(ggpubr)
 library(doParallel)
 library(parallel)
-library(foreach)
+library(microbenchmark)
+library(tidyverse)
+library(caTools)
+
+#sequential processing 
+setwd("/Users/USER/Documents/5011CEM-Big-Data-Programming-Project/5011CEM-Big-Data-Programming-Project/AreaPurchase")
+df <-
+  list.files(path = "/Users/USER/Documents/5011CEM-Big-Data-Programming-Project/5011CEM-Big-Data-Programming-Project/AreaPurchase", pattern = "*.csv") %>% 
+  map_df(~read_csv(.))
+
+summary(df)
+
+func<-function(f){
+  list.files(path = "/Users/USER/Documents/5011CEM-Big-Data-Programming-Project/5011CEM-Big-Data-Programming-Project/AreaPurchase", pattern = "*.csv") %>% 
+  map_df(~read_csv(.))
+}
+
+system.time(microbenchmark(lapply(1:1, func), times = 1L))
 
 #parallel processing
-# Detect the number of available cores and create cluster
-cl <- parallel::makeCluster(detectCores())
+n.cores<-8
+cluster<-parallel::makeCluster(n.cores, types = "PSOCK")
 
-# Activate cluster for foreach library
-doParallel::registerDoParallel(cl)
-time_foreach <- system.time({
-  r <- foreach::foreach(i = 1:1,
-                        .combine = rbind) %dopar% {
-                          oswardJan<-read.csv('Jan_osward_grocery.csv')
-                          oswardFeb<-read.csv('Feb_osward_grocery.csv')
-                          oswardMar<-read.csv('Mar_osward_grocery.csv')
-                          oswardApr<-read.csv('Apr_osward_grocery.csv')
-                          oswardMay<-read.csv('May_osward_grocery.csv')
-                          oswardJun<-read.csv('Jun_osward_grocery.csv')
-                        }
+clusterEvalQ(cluster, {
+  library(dplyr)
+  library(ggplot2)
+  library(ggpubr)
+  library(parallel)
+  library(microbenchmark)
+  library(tidyverse)
 })
-time_foreach[3]
-# Stop cluster to free up resources
-parallel::stopCluster(cl)
 
-#sequential processing
-#runtime
-start<-Sys.time()
+system.time(microbenchmark(parLapply(cluster, 1:1, func), times = 1L))
 
-oswardJan<-read.csv('Jan_osward_grocery.csv')
-oswardFeb<-read.csv('Feb_osward_grocery.csv')
-oswardMar<-read.csv('Mar_osward_grocery.csv')
-oswardApr<-read.csv('Apr_osward_grocery.csv')
-oswardMay<-read.csv('May_osward_grocery.csv')
-oswardJun<-read.csv('Jun_osward_grocery.csv')
 
-end<-Sys.time()
+#comparison
+compareMbm<-microbenchmark(seqData(), parallelData())
 
-runtime<-end - start
-runtime
+autoplot(compareMbm)
 
 #descriptive analysis 
 #Jan (age 0 to 17)
@@ -185,5 +189,22 @@ cor.test(oswardMay$num_transactions, oswardMay$age_65.)
 cor.test(oswardJun$num_transactions, oswardJun$age_0_17)
 cor.test(oswardJun$num_transactions, oswardJun$age_18_64)
 cor.test(oswardJun$num_transactions, oswardJun$age_65.)
+
+#linear regression
+dataset <-
+  list.files(path = "/Users/USER/Documents/5011CEM-Big-Data-Programming-Project/5011CEM-Big-Data-Programming-Project/AreaPurchase", pattern = "*.csv") %>% 
+  map_df(~read_csv(.))
+
+View(dataset)
+
+childrenSet<-lm(num_transactions~age_0_17, dataset)
+adultSet<-lm(num_transactions~age_18_64, dataset)
+elderSet<-lm(num_transactions~age_65+ , dataset)
+
+print(summary(childrenSet))
+print(summary(adultSet))
+print(summary(elderSet))
+
+
 
 
