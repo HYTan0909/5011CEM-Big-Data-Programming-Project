@@ -47,11 +47,6 @@ clusterEvalQ(cluster, {
 parData<-system.time(microbenchmark(parLapply(cluster, 1:1, func), times = 1L))
 
 
-#comparison
-compareMbm<-microbenchmark(seqData, parData)
-
-autoplot(seqData)
-
 #descriptive analysis 
 setwd("/Users/USER/Documents/5011CEM-Big-Data-Programming-Project/5011CEM-Big-Data-Programming-Project/AreaPurchase")
 oswardJan<-(read.csv("Jan_osward_grocery.csv"))
